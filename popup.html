@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Job Board Assistant</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      width: 320px;
+      padding: 15px;
+      transition: background-color 0.3s, color 0.3s;
+    }
+    
+    body[data-theme="light"] {
+      background-color: #ffffff;
+      color: #333333;
+    }
+    
+    body[data-theme="dark"] {
+      background-color: #333333;
+      color: #ffffff;
+    }
+    
+    h1 {
+      font-size: 18px;
+      margin-bottom: 15px;
+    }
+    
+    h2 {
+      font-size: 16px;
+      margin-top: 0;
+    }
+    
+    .option-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    
+    button {
+      background-color: #4285f4;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      margin-top: 10px;
+      width: 100%;
+    }
+    
+    button:hover {
+      background-color: #3367d6;
+    }
+    
+    #status {
+      margin-top: 10px;
+      font-style: italic;
+      color: #4285f4;
+      min-height: 20px;
+    }
+    
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 40px;
+      height: 20px;
+    }
+    
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #ccc;
+      transition: .4s;
+      border-radius: 20px;
+    }
+    
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 16px;
+      width: 16px;
+      left: 2px;
+      bottom: 2px;
+      background-color: white;
+      transition: .4s;
+      border-radius: 50%;
+    }
+    
+    input:checked + .slider {
+      background-color: #4285f4;
+    }
+    
+    input:focus + .slider {
+      box-shadow: 0 0 1px #4285f4;
+    }
+    
+    input:checked + .slider:before {
+      transform: translateX(20px);
+    }
+    
+    select {
+      padding: 5px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+    }
+    
+    #autofillContainer {
+      display: none;
+      margin-top: 15px;
+      padding-top: 15px;
+      border-top: 1px solid #ccc;
+    }
+    
+    .form-group {
+      margin-bottom: 10px;
+    }
+    
+    .form-group label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+      font-size: 14px;
+    }
+    
+    .form-group input {
+      width: 100%;
+      padding: 8px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
+    }
+    
+    .divider {
+      height: 1px;
+      background-color: #ccc;
+      margin: 15px 0;
+    }
+    
+    .button-group {
+      display: flex;
+      gap: 10px;
+    }
+    
+    .button-group button {
+      flex: 1;
+    }
+  </style>
+</head>
+<body data-theme="light">
+  <h1>Job Board Assistant</h1>
+  
+  <div class="option-row">
+    <span>Enable Extension:</span>
+    <label class="switch">
+      <input type="checkbox" id="toggleEnabled" checked>
+      <span class="slider"></span>
+    </label>
+  </div>
+  
+  <div class="option-row">
+    <span>Theme:</span>
+    <select id="themeSelect">
+      <option value="light">Light</option>
+      <option value="dark">Dark</option>
+    </select>
+  </div>
+  
+  <div class="divider"></div>
+  
+  <button id="analyzeButton">Find Job Application Form</button>
+  
+  <div id="status"></div>
+  
+  <div id="autofillContainer">
+    <h2>Your Profile</h2>
+    <div class="form-group">
+      <label for="profileName">Full Name</label>
+      <input type="text" id="profileName" placeholder="Enter your full name">
+    </div>
+    
+    <div class="form-group">
+      <label for="profileEmail">Email</label>
+      <input type="email" id="profileEmail" placeholder="Enter your email">
+    </div>
+    
+    <div class="button-group">
+      <button id="saveProfileButton">Save Profile</button>
+      <button id="autofillButton">Autofill Form</button>
+    </div>
+  </div>
+  
+  <script src="popup.js"></script>
+</body>
+</html> 

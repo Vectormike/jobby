@@ -1,0 +1,27 @@
+{
+  "name": "chrome_extension",
+  "version": "1.0.0",
+  "description": "Jobby is a Chrome extension that helps you apply to jobs on job boards.",
+  "main": "index.js",
+  "scripts": {
+    "build": "webpack --config webpack.config.js",
+    "watch": "webpack --config webpack.config.js --watch",
+    "dev": "npm run build && npm run copy-files",
+    "copy-files": "cp popup.html dist/ && mkdir -p dist/icons && cp -r icons/* dist/icons/",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "chrome",
+    "extension",
+    "typescript"
+  ],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/chrome": "^0.0.254",
+    "ts-loader": "^9.5.1",
+    "typescript": "^5.3.3",
+    "webpack": "^5.89.0",
+    "webpack-cli": "^5.1.4"
+  }
+}
