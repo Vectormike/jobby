@@ -1,144 +1,119 @@
-// Content script that runs on web pages
-import { Message, ResponseMessage, UserProfile } from './types';
-import { detectJobApplicationForm, highlightJobForm } from './services/jobFormService';
+// Content script that runs in the context of web pages
+import { Message, ResponseMessage } from './types';
+import { detectJobApplicationForm, detectJobBoardSite, getCurrentJobBoardPattern } from './services/jobFormService';
 import { autofillForm } from './services/autofillService';
+import { saveJobFormData } from './services/storageService';
 
-console.log('Content script loaded');
+console.log('Job Board Assistant content script loaded');
 
-/**
- * Analyze the current page content and look for job application forms
- */
-function analyzePageContent(): void {
-  const pageTitle = document.title;
-  const headings = document.querySelectorAll('h1, h2');
-  const links = document.querySelectorAll('a');
+// Listen for messages from the popup
+chrome.runtime.onMessage.addListener((message: Message, sender, sendResponse) => {
+  console.log('Message received in content script:', message);
   
-  const pageInfo = {
-    title: pageTitle,
-    headingCount: headings.length,
-    linkCount: links.length,
-    url: window.location.href
-  };
-  
-  console.log('Page analysis:', pageInfo);
-  
-  // Check for job application forms
-  const jobForm = detectJobApplicationForm();
-  if (jobForm) {
-    console.log('Found job application form:', jobForm);
-    highlightJobForm(jobForm);
-    
-    // Send data to background script
-    chrome.runtime.sendMessage({
-      action: 'jobFormFound',
-      data: {
-        url: window.location.href,
-        formFound: true
-      }
-    });
+  if (message.action === 'findJobForm') {
+    handleFindJobForm(sendResponse);
+    return true; // Keep the message channel open for async response
   }
   
-  // Send data to background script
-  chrome.runtime.sendMessage({
-    action: 'pageAnalyzed',
-    data: pageInfo
-  });
-}
-
-/**
- * Autofill form using stored profile data
- */
-async function autofillWithStoredProfile(): Promise<boolean> {
-  try {
-    // Get profile data from storage
-    const profileData = await new Promise<UserProfile>((resolve) => {
-      chrome.storage.sync.get('userProfile', (data) => {
-        resolve(data.userProfile || { name: '', email: '' });
-      });
-    });
-    
-    // Use the autofill service with the stored profile
-    return autofillForm(profileData);
-  } catch (error) {
-    console.error('Error autofilling with stored profile:', error);
-    return false;
+  if (message.action === 'autofillWithStoredProfile') {
+    handleAutofill(sendResponse);
+    return true; // Keep the message channel open for async response
   }
-}
-
-// Run after page load
-window.addEventListener('load', () => {
-  setTimeout(analyzePageContent, 1000);
 });
 
-// Listen for messages from background script or popup
-chrome.runtime.onMessage.addListener((message: Message, sender, sendResponse: (response: ResponseMessage) => void) => {
-  // Analyze page content
-  if (message.action === 'analyzeNow') {
-    analyzePageContent();
-    sendResponse({ success: true });
-  }
-  
-  // Find job application form
-  if (message.action === 'findJobForm') {
-    const jobForm = detectJobApplicationForm();
-    if (jobForm) {
-      highlightJobForm(jobForm);
-      sendResponse({ 
-        success: true, 
-        formFound: true 
-      });
-    } else {
-      sendResponse({ 
-        success: true, 
-        formFound: false 
-      });
+// Check if the current page has a job application form
+async function handleFindJobForm(sendResponse: (response: ResponseMessage) => void): Promise<void> {
+  try {
+    const formElement = detectJobApplicationForm();
+    const formFound = !!formElement;
+    
+    // Check if the form has resume upload fields
+    const hasResumeField = formFound && checkForResumeFields(formElement);
+    
+    // Save result to storage
+    if (formFound) {
+      await saveJobFormData(window.location.href, true);
     }
-    return true;
-  }
-  
-  // Autofill form with user profile data
-  if (message.action === 'autofillForm') {
-    // If profile is provided in the message, use it
-    if (message.profile) {
-      const profile = message.profile as UserProfile;
-      const success = autofillForm(profile);
-      sendResponse({ 
-        success: true, 
-        fieldsFilled: success 
-      });
-    } 
-    // Otherwise use stored profile
-    else {
-      autofillWithStoredProfile().then(success => {
-        sendResponse({ 
-          success: true, 
-          fieldsFilled: success 
-        });
-      }).catch(error => {
-        console.error('Error in autofill:', error);
-        sendResponse({ 
-          success: false, 
-          error: error.message 
-        });
-      });
-    }
-    return true;
-  }
-  
-  // Autofill with stored profile data
-  if (message.action === 'autofillWithStoredProfile') {
-    autofillWithStoredProfile().then(success => {
-      sendResponse({ 
-        success: true, 
-        fieldsFilled: success 
-      });
-    }).catch(error => {
-      console.error('Error in autofill:', error);
-      sendResponse({ 
-        success: false, 
-        error: error.message 
-      });
+    
+    sendResponse({
+      success: true,
+      formFound,
+      hasResumeField
     });
-    return true;
+  } catch (error) {
+    console.error('Error finding job form:', error);
+    sendResponse({
+      success: false,
+      error: 'Error finding job form'
+    });
   }
-}); 
+}
+
+// Check if the form has resume upload fields
+function checkForResumeFields(formElement: Element): boolean {
+  const fileInputs = formElement.querySelectorAll('input[type="file"]');
+  
+  for (const input of Array.from(fileInputs)) {
+    const inputElement = input as HTMLInputElement;
+    const name = inputElement.name?.toLowerCase() || '';
+    const id = inputElement.id?.toLowerCase() || '';
+    const accept = inputElement.accept?.toLowerCase() || '';
+    
+    // Check if this is likely a resume upload field
+    if (
+      name.includes('resume') || name.includes('cv') || 
+      id.includes('resume') || id.includes('cv') ||
+      accept.includes('pdf') || accept.includes('doc') ||
+      inputElement.closest('label')?.textContent?.toLowerCase().includes('resume')
+    ) {
+      return true;
+    }
+  }
+  
+  return false;
+}
+
+// Handle autofill request
+async function handleAutofill(sendResponse: (response: ResponseMessage) => void): Promise<void> {
+  try {
+    // Get the current job board pattern
+    const jobBoardPattern = getCurrentJobBoardPattern();
+    
+    if (!jobBoardPattern) {
+      sendResponse({
+        success: false,
+        error: 'No job board pattern found for this site'
+      });
+      return;
+    }
+    
+    // Autofill the form
+    const result = await autofillForm(jobBoardPattern);
+    
+    sendResponse({
+      success: true,
+      fieldsFilled: result.fieldsFilled
+    });
+  } catch (error) {
+    console.error('Error autofilling form:', error);
+    sendResponse({
+      success: false,
+      error: 'Error autofilling form'
+    });
+  }
+}
+
+// Check for job form on page load
+async function checkForJobFormOnLoad(): Promise<void> {
+  try {
+    const formElement = detectJobApplicationForm();
+    if (formElement) {
+      await saveJobFormData(window.location.href, true);
+    }
+  } catch (error) {
+    console.error('Error checking for job form on load:', error);
+  }
+}
+
+// Run initial check when page is fully loaded
+window.addEventListener('load', checkForJobFormOnLoad); 
