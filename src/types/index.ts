@@ -23,6 +23,20 @@ export interface JobBoardPatterns {
 export interface UserProfile {
   name: string;
   email: string;
+  phone: string;
+  address: string;
+  city: string;
+  state: string;
+  zipCode: string;
+  linkedin: string;
+  github: string;
+  portfolio: string;
+  yearsOfExperience: string;
+  education: string;
+  skills: string;
+  resumeData?: string; // Base64 encoded resume file
+  resumeFileName?: string; // Original file name
+  resumeFileType?: string; // MIME type of the resume
 }
 
 // Types for job form data
