@@ -7,7 +7,7 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      width: 320px;
+      width: 350px;
       padding: 15px;
       transition: background-color 0.3s, color 0.3s;
     }
@@ -122,6 +122,8 @@
       margin-top: 15px;
       padding-top: 15px;
       border-top: 1px solid #ccc;
+      max-height: 400px;
+      overflow-y: auto;
     }
     
     .form-group {
@@ -135,12 +137,17 @@
       font-size: 14px;
     }
     
-    .form-group input {
+    .form-group input, .form-group textarea {
       width: 100%;
       padding: 8px;
       border-radius: 4px;
       border: 1px solid #ccc;
       box-sizing: border-box;
+    }
+    
+    .form-group textarea {
+      height: 80px;
+      resize: vertical;
     }
     
     .divider {
@@ -156,6 +163,72 @@
     
     .button-group button {
       flex: 1;
+    }
+    
+    .section-title {
+      font-size: 14px;
+      font-weight: bold;
+      margin-top: 15px;
+      margin-bottom: 10px;
+      border-bottom: 1px solid #ccc;
+      padding-bottom: 5px;
+    }
+    
+    .form-row {
+      display: flex;
+      gap: 10px;
+    }
+    
+    .form-row .form-group {
+      flex: 1;
+    }
+
+    .file-input-container {
+      position: relative;
+      margin-bottom: 15px;
+    }
+
+    .file-input-container input[type="file"] {
+      position: absolute;
+      left: 0;
+      top: 0;
+      opacity: 0;
+      width: 100%;
+      height: 100%;
+      cursor: pointer;
+    }
+
+    .file-input-button {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background-color: #f5f5f5;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      padding: 8px 12px;
+      width: 100%;
+      cursor: pointer;
+    }
+
+    .file-input-button:hover {
+      background-color: #e8e8e8;
+    }
+
+    .file-input-button i {
+      font-size: 18px;
+    }
+
+    .file-name {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      flex: 1;
+    }
+
+    .file-info {
+      font-size: 12px;
+      color: #666;
+      margin-top: 5px;
     }
   </style>
 </head>
@@ -186,6 +259,8 @@
   
   <div id="autofillContainer">
     <h2>Your Profile</h2>
+    
+    <div class="section-title">Personal Information</div>
     <div class="form-group">
       <label for="profileName">Full Name</label>
       <input type="text" id="profileName" placeholder="Enter your full name">
@@ -195,6 +270,79 @@
       <label for="profileEmail">Email</label>
       <input type="email" id="profileEmail" placeholder="Enter your email">
     </div>
+    
+    <div class="form-group">
+      <label for="profilePhone">Phone Number</label>
+      <input type="tel" id="profilePhone" placeholder="Enter your phone number">
+    </div>
+    
+    <div class="section-title">Address</div>
+    <div class="form-group">
+      <label for="profileAddress">Street Address</label>
+      <input type="text" id="profileAddress" placeholder="Enter your street address">
+    </div>
+    
+    <div class="form-row">
+      <div class="form-group">
+        <label for="profileCity">City</label>
+        <input type="text" id="profileCity" placeholder="City">
+      </div>
+      
+      <div class="form-group">
+        <label for="profileState">State</label>
+        <input type="text" id="profileState" placeholder="State">
+      </div>
+    </div>
+    
+    <div class="form-group">
+      <label for="profileZipCode">Zip Code</label>
+      <input type="text" id="profileZipCode" placeholder="Zip code">
+    </div>
+    
+    <div class="section-title">Professional Information</div>
+    <div class="form-group">
+      <label for="profileLinkedin">LinkedIn URL</label>
+      <input type="url" id="profileLinkedin" placeholder="https://linkedin.com/in/yourprofile">
+    </div>
+    
+    <div class="form-group">
+      <label for="profileGithub">GitHub URL</label>
+      <input type="url" id="profileGithub" placeholder="https://github.com/yourusername">
+    </div>
+    
+    <div class="form-group">
+      <label for="profilePortfolio">Portfolio URL</label>
+      <input type="url" id="profilePortfolio" placeholder="https://yourportfolio.com">
+    </div>
+    
+    <div class="form-group">
+      <label for="profileYearsOfExperience">Years of Experience</label>
+      <input type="text" id="profileYearsOfExperience" placeholder="e.g., 3 years">
+    </div>
+    
+    <div class="form-group">
+      <label for="profileEducation">Education</label>
+      <textarea id="profileEducation" placeholder="Enter your education background"></textarea>
+    </div>
+    
+    <div class="form-group">
+      <label for="profileSkills">Skills</label>
+      <textarea id="profileSkills" placeholder="Enter your skills, separated by commas"></textarea>
+    </div>
+    
+    <div class="section-title">Resume</div>
+    <div class="form-group">
+      <label for="profileResume">Upload Resume</label>
+      <div class="file-input-container">
+        <div class="file-input-button">
+          <span class="file-name" id="resumeFileName">No file selected</span>
+          <span>Browse</span>
+        </div>
+        <input type="file" id="profileResume" accept=".pdf,.doc,.docx,.txt">
+        <div class="file-info" id="resumeFileInfo"></div>
+      </div>
+    </div>
+    <div id="resumePreview"></div>
     
     <div class="button-group">
       <button id="saveProfileButton">Save Profile</button>
