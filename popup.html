@@ -230,6 +230,126 @@
       color: #666;
       margin-top: 5px;
     }
+
+    .ai-response-container {
+      background-color: #f9f9f9;
+      border-radius: 4px;
+      padding: 10px;
+      margin-top: 10px;
+    }
+
+    .ai-response-item {
+      margin-bottom: 15px;
+      padding-bottom: 15px;
+      border-bottom: 1px solid #ddd;
+    }
+
+    .ai-response-question {
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+
+    .ai-response-text {
+      font-size: 13px;
+      line-height: 1.4;
+      white-space: pre-wrap;
+    }
+
+    .ai-action-buttons {
+      display: flex;
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    .ai-action-button {
+      background-color: #f0f0f0;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      padding: 3px 8px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    .ai-action-button:hover {
+      background-color: #e0e0e0;
+    }
+
+    #generateAIResponse {
+      background-color: #4285f4;
+      color: white;
+      width: 100%;
+    }
+
+    #copyAIResponse {
+      background-color: #34a853;
+      color: white;
+    }
+
+    .loading-spinner {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(255,255,255,.3);
+      border-radius: 50%;
+      border-top-color: #fff;
+      animation: spin 1s ease-in-out infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .service-options {
+      margin-top: 10px;
+      padding: 10px;
+      border: 1px solid #eee;
+      border-radius: 4px;
+    }
+
+    .info-box {
+      background-color: #f8f9fa;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      padding: 10px;
+      margin-top: 10px;
+      font-size: 12px;
+    }
+
+    .info-box p {
+      margin-top: 0;
+      margin-bottom: 8px;
+    }
+
+    .info-box ol {
+      margin: 0;
+      padding-left: 20px;
+    }
+
+    .info-box code {
+      background-color: #eee;
+      padding: 2px 4px;
+      border-radius: 3px;
+      font-family: monospace;
+    }
+
+    .info-box a {
+      color: #4285f4;
+      text-decoration: none;
+    }
+
+    .info-box a:hover {
+      text-decoration: underline;
+    }
+
+    .note {
+      color: #666;
+      font-style: italic;
+      margin-top: 8px;
+      font-size: 11px;
+      background-color: #fffde7;
+      padding: 5px;
+      border-left: 3px solid #ffd54f;
+    }
   </style>
 </head>
 <body data-theme="light">
@@ -249,6 +369,54 @@
       <option value="light">Light</option>
       <option value="dark">Dark</option>
     </select>
+  </div>
+  
+  <div class="option-row">
+    <span>AI Service:</span>
+    <select id="aiServiceSelect">
+      <option value="openai">OpenAI (ChatGPT)</option>
+      <option value="deepseek">DeepSeek</option>
+    </select>
+  </div>
+  
+  <div id="openaiOptions" class="service-options">
+    <div class="option-row">
+      <span>OpenAI API Key:</span>
+      <input type="password" id="openaiApiKey" placeholder="Enter your API key" style="width: 180px;">
+    </div>
+    
+    <div class="option-row">
+      <button id="saveApiKey">Save API Key</button>
+    </div>
+    
+    <div class="info-box">
+      <p><strong>ChatGPT Setup:</strong> Requires an OpenAI API key to use ChatGPT.</p>
+      <ol>
+        <li>Get an API key from <a href="https://platform.openai.com/account/api-keys" target="_blank">OpenAI</a></li>
+        <li>Enter your key above and click "Save API Key"</li>
+      </ol>
+      <p class="note"><strong>Note:</strong> If no API key is provided, mock responses will be used automatically.</p>
+    </div>
+  </div>
+
+  <div id="deepseekOptions" class="service-options">
+    <div class="option-row">
+      <span>DeepSeek API Key:</span>
+      <input type="password" id="deepseekApiKey" placeholder="Enter your API key" style="width: 180px;">
+    </div>
+    
+    <div class="option-row">
+      <button id="saveDeepseekApiKey">Save API Key</button>
+    </div>
+    
+    <div class="info-box">
+      <p><strong>DeepSeek Setup:</strong> Requires a DeepSeek API key.</p>
+      <ol>
+        <li>Get an API key from <a href="https://deepseek.com" target="_blank">DeepSeek</a></li>
+        <li>Enter your key above and click "Save API Key"</li>
+      </ol>
+      <p class="note"><strong>Note:</strong> If no API key is provided, mock responses will be used automatically.</p>
+    </div>
   </div>
   
   <div class="divider"></div>
@@ -320,14 +488,90 @@
       <input type="text" id="profileYearsOfExperience" placeholder="e.g., 3 years">
     </div>
     
+    <div class="section-title">Education</div>
     <div class="form-group">
-      <label for="profileEducation">Education</label>
-      <textarea id="profileEducation" placeholder="Enter your education background"></textarea>
+      <label for="profileDegree">Degree</label>
+      <input type="text" id="profileDegree" placeholder="e.g., Bachelor's, Master's, Ph.D.">
     </div>
     
     <div class="form-group">
-      <label for="profileSkills">Skills</label>
-      <textarea id="profileSkills" placeholder="Enter your skills, separated by commas"></textarea>
+      <label for="profileDiscipline">Discipline/Major</label>
+      <input type="text" id="profileDiscipline" placeholder="e.g., Computer Science, Business">
+    </div>
+    
+    <div class="form-group">
+      <label for="profileSchool">School/University</label>
+      <input type="text" id="profileSchool" placeholder="e.g., Stanford University">
+    </div>
+    
+    <div class="form-row">
+      <div class="form-group">
+        <label for="profileEducationStartMonth">Start Month</label>
+        <select id="profileEducationStartMonth">
+          <option value="">Select</option>
+          <option value="January">January</option>
+          <option value="February">February</option>
+          <option value="March">March</option>
+          <option value="April">April</option>
+          <option value="May">May</option>
+          <option value="June">June</option>
+          <option value="July">July</option>
+          <option value="August">August</option>
+          <option value="September">September</option>
+          <option value="October">October</option>
+          <option value="November">November</option>
+          <option value="December">December</option>
+        </select>
+      </div>
+      
+      <div class="form-group">
+        <label for="profileEducationStartYear">Start Year</label>
+        <input type="text" id="profileEducationStartYear" placeholder="e.g., 2018">
+      </div>
+    </div>
+    
+    <div class="form-row">
+      <div class="form-group">
+        <label for="profileEducationEndMonth">End Month</label>
+        <select id="profileEducationEndMonth">
+          <option value="">Select</option>
+          <option value="January">January</option>
+          <option value="February">February</option>
+          <option value="March">March</option>
+          <option value="April">April</option>
+          <option value="May">May</option>
+          <option value="June">June</option>
+          <option value="July">July</option>
+          <option value="August">August</option>
+          <option value="September">September</option>
+          <option value="October">October</option>
+          <option value="November">November</option>
+          <option value="December">December</option>
+          <option value="Present">Present</option>
+        </select>
+      </div>
+      
+      <div class="form-group">
+        <label for="profileEducationEndYear">End Year</label>
+        <input type="text" id="profileEducationEndYear" placeholder="e.g., 2022 or Present">
+      </div>
+    </div>
+    
+    <div class="form-group">
+      <label for="profileEducation">Additional Education Notes</label>
+      <textarea id="profileEducation" placeholder="Enter any additional education details or notes"></textarea>
+    </div>
+    
+    <div class="section-title">Personal Details</div>
+    <div class="form-group">
+      <label for="profileGender">Gender</label>
+      <select id="profileGender">
+        <option value="">Select</option>
+        <option value="Male">Male</option>
+        <option value="Female">Female</option>
+        <option value="Non-binary">Non-binary</option>
+        <option value="Prefer not to say">Prefer not to say</option>
+      </select>
     </div>
     
     <div class="section-title">Resume</div>
@@ -344,10 +588,82 @@
     </div>
     <div id="resumePreview"></div>
     
+    <div class="section-title">Skills</div>
+    <div class="form-group">
+      <label for="profileSkills">Skills</label>
+      <textarea id="profileSkills" placeholder="Enter your skills, separated by commas"></textarea>
+    </div>
+    
+    <div class="section-title">Self-Identification (Optional)</div>
+    <div class="form-group">
+      <label for="profileHispanicLatino">Hispanic/Latino</label>
+      <select id="profileHispanicLatino">
+        <option value="">Select</option>
+        <option value="Yes">Yes</option>
+        <option value="No">No</option>
+        <option value="Decline to Answer">Decline to Answer</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="profileVeteranStatus">Veteran Status</label>
+      <select id="profileVeteranStatus">
+        <option value="">Select</option>
+        <option value="I am not a protected veteran">I am not a protected veteran</option>
+        <option value="I identify as one or more of the classifications of protected veteran">I identify as one or more of the classifications of protected veteran</option>
+        <option value="Disabled veteran">Disabled veteran</option>
+        <option value="Recently separated veteran">Recently separated veteran</option>
+        <option value="Active duty wartime or campaign badge veteran">Active duty wartime or campaign badge veteran</option>
+        <option value="Armed forces service medal veteran">Armed forces service medal veteran</option>
+        <option value="Decline to Answer">Decline to Answer</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="profileDisabilityStatus">Disability Status</label>
+      <select id="profileDisabilityStatus">
+        <option value="">Select</option>
+        <option value="Yes, I have a disability, or have had one in the past">Yes, I have a disability, or have had one in the past</option>
+        <option value="No, I don't have a disability">No, I don't have a disability</option>
+        <option value="I don't wish to answer">I don't wish to answer</option>
+      </select>
+    </div>
+    
     <div class="button-group">
       <button id="saveProfileButton">Save Profile</button>
       <button id="autofillButton">Autofill Form</button>
     </div>
+  </div>
+  
+  <!-- AI Assistant section -->
+  <div class="section-title">AI Assistant</div>
+  <div class="form-group">
+    <label for="aiQuestion">Job Application Question</label>
+    <textarea id="aiQuestion" placeholder="Paste a question from the job application (e.g., 'Why are you a good fit for this role?')"></textarea>
+  </div>
+
+  <div class="form-group">
+    <label for="aiContext">Job Context (Optional)</label>
+    <textarea id="aiContext" placeholder="Paste relevant information about the job, such as the job description, to help generate a better response"></textarea>
+  </div>
+
+  <div class="form-group">
+    <button id="generateAIResponse">Generate Response</button>
+  </div>
+
+  <div id="aiResponseContainer" style="display: none;">
+    <div class="section-title">Generated Response</div>
+    <div class="form-group">
+      <textarea id="aiResponse" placeholder="AI-generated response will appear here" rows="8"></textarea>
+    </div>
+    <div class="form-group">
+      <button id="copyAIResponse">Copy to Clipboard</button>
+    </div>
+  </div>
+
+  <div id="aiResponseHistory" style="display: none;">
+    <div class="section-title">Recent Responses</div>
+    <div id="aiResponseList"></div>
   </div>
   
   <script src="popup.js"></script>

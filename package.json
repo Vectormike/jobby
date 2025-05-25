@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "build": "webpack --config webpack.config.js",
+    "build:prod": "cross-env NODE_ENV=production webpack --config webpack.config.js",
     "watch": "webpack --config webpack.config.js --watch",
     "dev": "npm run build && npm run copy-files",
     "copy-files": "cp popup.html dist/ && mkdir -p dist/icons && cp -r icons/* dist/icons/",
@@ -19,6 +20,8 @@
   "license": "ISC",
   "devDependencies": {
     "@types/chrome": "^0.0.254",
+    "cross-env": "^7.0.3",
+    "dotenv-webpack": "^8.0.1",
     "ts-loader": "^9.5.1",
     "typescript": "^5.3.3",
     "webpack": "^5.89.0",

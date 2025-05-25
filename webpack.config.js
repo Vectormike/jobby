@@ -1,4 +1,6 @@
 const path = require('path');
+const webpack = require('webpack');
+const Dotenv = require('dotenv-webpack');
 
 module.exports = {
   mode: 'development',
@@ -24,4 +26,17 @@ module.exports = {
       },
     ],
   },
+  plugins: [
+    // Load environment variables from .env files
+    new Dotenv({
+      path: '.env', // Path to .env file (default)
+      safe: true, // Load .env.example as a fallback (optional)
+      systemvars: true, // Load system environment variables as well
+      defaults: false, // Don't load .env.defaults
+    }),
+    // Define process.env if it doesn't exist in the client
+    new webpack.DefinePlugin({
+      'process.env': JSON.stringify(process.env),
+    }),
+  ],
 }; 
