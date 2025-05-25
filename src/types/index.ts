@@ -2,6 +2,9 @@
 export interface Options {
   enabled: boolean;
   theme: string;
+  openaiApiKey?: string;
+  apiKey?: string; // Generic API key that can be used for any AI service
+  aiService?: 'openai' | 'deepseek'; // Type of AI service to use
 }
 
 export interface StorageData {
@@ -34,6 +37,20 @@ export interface UserProfile {
   yearsOfExperience: string;
   education: string;
   skills: string;
+  // Education details
+  degree: string;
+  discipline: string;
+  school: string;
+  educationStartYear: string;
+  educationStartMonth: string;
+  educationEndYear: string;
+  educationEndMonth: string;
+  // Personal details
+  gender: string;
+  // Self-identification
+  hispanicLatino: string;
+  veteranStatus: string;
+  disabilityStatus: string;
   resumeData?: string; // Base64 encoded resume file
   resumeFileName?: string; // Original file name
   resumeFileType?: string; // MIME type of the resume
@@ -59,4 +76,15 @@ export interface Message {
 export interface ResponseMessage {
   success: boolean;
   [key: string]: any;
+}
+
+// Types for AI-assisted responses
+export interface AIPrompt {
+  question: string;
+  context: string;
+  response?: string;
+}
+
+export interface AIResponsesData {
+  [questionId: string]: AIPrompt;
 } 
