@@ -41,7 +41,7 @@ async function initPopup(): Promise<void> {
                 statusElement.textContent = 'Job application form found!';
                 
                 // Show profile management UI
-                showProfileManager();
+                showProfileManager(response.hasResumeField);
                 
                 // Add autofill button
                 addAutofillButton(tabId, statusElement);
@@ -66,39 +66,44 @@ async function initPopup(): Promise<void> {
 }
 
 // Show profile management UI
-async function showProfileManager(): Promise<void> {
+async function showProfileManager(hasResumeField: boolean = false): Promise<void> {
   const profileContainer = document.getElementById('autofillContainer');
   if (profileContainer) {
     profileContainer.style.display = 'block';
+    
+    // Show or hide resume section based on whether the form has resume fields
+    const resumeSection = document.querySelector('.section-title:last-of-type') as HTMLElement;
+    const resumeGroup = document.querySelector('.form-group:last-of-type') as HTMLElement;
+    const resumePreview = document.getElementById('resumePreview') as HTMLElement;
+    
+    if (resumeSection && resumeGroup && resumePreview) {
+      if (hasResumeField) {
+        resumeSection.style.display = 'block';
+        resumeGroup.style.display = 'block';
+        resumePreview.style.display = 'block';
+      } else {
+        resumeSection.style.display = 'none';
+        resumeGroup.style.display = 'none';
+        resumePreview.style.display = 'none';
+      }
+    }
     
     try {
       // Load user profile data if available
       const profile = await getUserProfile();
       
       // Update UI with profile data if available
-      const nameInput = document.getElementById('profileName') as HTMLInputElement;
-      const emailInput = document.getElementById('profileEmail') as HTMLInputElement;
+      updateProfileForm(profile);
       
-      if (nameInput && profile.name) {
-        nameInput.value = profile.name;
-      }
-      
-      if (emailInput && profile.email) {
-        emailInput.value = profile.email;
-      }
+      // Set up resume file input
+      setupResumeUpload();
       
       // Set up save profile button
       const saveProfileButton = document.getElementById('saveProfileButton');
       if (saveProfileButton) {
         saveProfileButton.addEventListener('click', async () => {
-          const nameInput = document.getElementById('profileName') as HTMLInputElement;
-          const emailInput = document.getElementById('profileEmail') as HTMLInputElement;
-          
-          // Save profile data
-          const profile: UserProfile = {
-            name: nameInput.value,
-            email: emailInput.value
-          };
+          // Collect profile data from form
+          const profile = await collectProfileData();
           
           try {
             await saveUserProfile(profile);
@@ -119,6 +124,153 @@ async function showProfileManager(): Promise<void> {
       console.error('Error loading user profile:', error);
     }
   }
+}
+
+// Update profile form with saved data
+function updateProfileForm(profile: UserProfile): void {
+  // Personal information
+  setInputValue('profileName', profile.name);
+  setInputValue('profileEmail', profile.email);
+  setInputValue('profilePhone', profile.phone);
+  
+  // Address
+  setInputValue('profileAddress', profile.address);
+  setInputValue('profileCity', profile.city);
+  setInputValue('profileState', profile.state);
+  setInputValue('profileZipCode', profile.zipCode);
+  
+  // Professional information
+  setInputValue('profileLinkedin', profile.linkedin);
+  setInputValue('profileGithub', profile.github);
+  setInputValue('profilePortfolio', profile.portfolio);
+  setInputValue('profileYearsOfExperience', profile.yearsOfExperience);
+  setInputValue('profileEducation', profile.education);
+  setInputValue('profileSkills', profile.skills);
+  
+  // Resume information
+  if (profile.resumeFileName) {
+    const resumeFileName = document.getElementById('resumeFileName');
+    const resumeFileInfo = document.getElementById('resumeFileInfo');
+    
+    if (resumeFileName) {
+      resumeFileName.textContent = profile.resumeFileName;
+    }
+    
+    if (resumeFileInfo && profile.resumeFileType) {
+      resumeFileInfo.textContent = `Type: ${profile.resumeFileType}`;
+    }
+  }
+}
+
+// Set up resume upload functionality
+function setupResumeUpload(): void {
+  const resumeInput = document.getElementById('profileResume') as HTMLInputElement;
+  const resumeFileName = document.getElementById('resumeFileName');
+  const resumeFileInfo = document.getElementById('resumeFileInfo');
+  
+  if (resumeInput && resumeFileName && resumeFileInfo) {
+    resumeInput.addEventListener('change', (event) => {
+      const files = (event.target as HTMLInputElement).files;
+      
+      if (files && files.length > 0) {
+        const file = files[0];
+        resumeFileName.textContent = file.name;
+        resumeFileInfo.textContent = `Type: ${file.type}, Size: ${formatFileSize(file.size)}`;
+      } else {
+        resumeFileName.textContent = 'No file selected';
+        resumeFileInfo.textContent = '';
+      }
+    });
+  }
+}
+
+// Format file size to human-readable format
+function formatFileSize(bytes: number): string {
+  if (bytes < 1024) {
+    return bytes + ' bytes';
+  } else if (bytes < 1024 * 1024) {
+    return (bytes / 1024).toFixed(1) + ' KB';
+  } else {
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+  }
+}
+
+// Helper to set input value if element exists
+function setInputValue(id: string, value: string): void {
+  const element = document.getElementById(id) as HTMLInputElement | HTMLTextAreaElement;
+  if (element && value) {
+    element.value = value;
+  }
+}
+
+// Collect profile data from form
+async function collectProfileData(): Promise<UserProfile> {
+  const profile: UserProfile = {
+    // Personal information
+    name: getInputValue('profileName'),
+    email: getInputValue('profileEmail'),
+    phone: getInputValue('profilePhone'),
+    
+    // Address
+    address: getInputValue('profileAddress'),
+    city: getInputValue('profileCity'),
+    state: getInputValue('profileState'),
+    zipCode: getInputValue('profileZipCode'),
+    
+    // Professional information
+    linkedin: getInputValue('profileLinkedin'),
+    github: getInputValue('profileGithub'),
+    portfolio: getInputValue('profilePortfolio'),
+    yearsOfExperience: getInputValue('profileYearsOfExperience'),
+    education: getInputValue('profileEducation'),
+    skills: getInputValue('profileSkills')
+  };
+  
+  // Handle resume file
+  const resumeInput = document.getElementById('profileResume') as HTMLInputElement;
+  if (resumeInput && resumeInput.files && resumeInput.files.length > 0) {
+    const file = resumeInput.files[0];
+    
+    try {
+      // Read file as base64
+      const base64Data = await readFileAsBase64(file);
+      
+      profile.resumeData = base64Data;
+      profile.resumeFileName = file.name;
+      profile.resumeFileType = file.type;
+    } catch (error) {
+      console.error('Error reading resume file:', error);
+    }
+  }
+  
+  return profile;
+}
+
+// Read file as base64
+function readFileAsBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    
+    reader.onload = () => {
+      if (typeof reader.result === 'string') {
+        resolve(reader.result);
+      } else {
+        reject(new Error('Failed to read file as base64'));
+      }
+    };
+    
+    reader.onerror = () => {
+      reject(reader.error);
+    };
+    
+    reader.readAsDataURL(file);
+  });
+}
+
+// Helper to get input value
+function getInputValue(id: string): string {
+  const element = document.getElementById(id) as HTMLInputElement | HTMLTextAreaElement;
+  return element ? element.value : '';
 }
 
 // Add autofill button functionality
@@ -157,10 +309,19 @@ async function checkForRecentJobForm(): Promise<void> {
           if (formData && formData.formFound && tabs[0]?.id) {
             const statusElement = document.getElementById('status') as HTMLDivElement;
             statusElement.textContent = 'Job application form detected on this page.';
-            await showProfileManager();
             
             const tabId = tabs[0].id;
-            addAutofillButton(tabId, statusElement);
+            
+            // Check if the form has resume fields
+            chrome.tabs.sendMessage(tabId, { action: 'findJobForm' }, async (response) => {
+              if (response && response.success) {
+                await showProfileManager(response.hasResumeField);
+                addAutofillButton(tabId, statusElement);
+              } else {
+                await showProfileManager(false);
+                addAutofillButton(tabId, statusElement);
+              }
+            });
           }
         } catch (error) {
           console.error('Error checking for job form:', error);
